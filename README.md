@@ -2,6 +2,11 @@
 
 ***Dump public key from more keyserver on your terminal!***
 
+# Dipendenze
+
+- curl
+- gnupg
+
 # Usage
 
 Use:

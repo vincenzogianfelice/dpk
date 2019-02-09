@@ -21,6 +21,11 @@ help() {
    echo ""
 }
 
+if ! command -v curl &> /dev/null || ! command -v gpg &> /dev/null; then
+   echo "Mancano alcune dipendenze. Installale prima."
+   exit 1
+fi
+
 if [ "$#" -eq 0 ]; then
    help
    exit 1
