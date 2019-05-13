@@ -1,0 +1,80 @@
+#!/bin/bash
+
+LIST_SITES=('keys.gnupg.net' 'keyserver.ubuntu.com' 'pgp.mit.edu' 'hkps.pool.sks-keyservers.net')
+SEARCH=""
+KEY=""
+
+help() {
+   echo ""
+   echo "Usage: $0 -n email | -e fingerprint_exadecimal"
+   echo ""
+   echo " -n   Email or name"
+   echo " -e   Exadecimal fingerprint"
+   echo " "
+   echo "Example:"
+   echo ""
+   echo " $0 -n pinco@pallo.com"
+   echo " $0 -n \"Nome certificato key\""
+   echo " $0 -e 12345678"
+   echo " $0 -e 12345678 > pkey.asc"
+   echo ""
+}
+
+if ! command -v curl &> /dev/null || ! command -v gpg &> /dev/null; then
+   echo "Mancano alcune dipendenze. Installale prima."
+   exit 1
+fi
+
+if [ "$#" -eq 0 ]; then
+   help
+   exit 1
+fi
+
+while getopts "n:e:v" arg; do
+   case "$arg" in
+
+      e)
+         SEARCH="0x$(echo $OPTARG | sed -e 's/[[:space:]]*//g')"
+         ;;
+      n)
+	 if echo "$OPTARG" | grep '@' &>/dev/null; then
+            SEARCH="$(echo $OPTARG | sed -e 's/@/%40/')"
+         else
+            SEARCH="$OPTARG"
+         fi
+
+         SEARCH="$(echo $SEARCH | sed -e 's/[[:space:]]/+/g')"
+         ;;
+      *)
+         exit 1
+         ;;
+   esac
+done
+if [ $OPTIND -eq 1 ]; then
+   help
+   exit 1
+fi
+shift "$((OPTIND-1))"
+
+echo "" >&2
+
+while [ -z "$KEY" ]
+do
+	for keyserver in $(seq 0 $((${#LIST_SITES[@]}-1)))
+	do
+		echo "* Searching in ${LIST_SITES[$keyserver]}..." >&2
+		nc -z -w 3 "${LIST_SITES[$keyserver]}" 80 &> /dev/null
+
+		if nc -z -w 3 "${LIST_SITES[$keyserver]}" 80 &> /dev/null; then
+			KEY="$(curl --silent 'http://'${LIST_SITES[$keyserver]}'/pks/lookup?search='$SEARCH'&op=get' | awk '/-----BEGIN PGP PUBLIC KEY BLOCK-----/,/-----END PGP PUBLIC KEY BLOCK-----/')"
+
+			if [ ! -z "$KEY" ]; then
+				echo "" >&2
+				echo "$KEY"
+				break
+			fi
+		fi
+	done
+done
+
+exit 0

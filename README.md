@@ -1,19 +1,18 @@
-# DPK
+# DumpPGP
 
 ***Dump public key from more keyserver on your terminal!***
 
 # Dipendenze
 
 - curl
-- gnupg
 
 # Usage
 
 Use:
 
 ```
-$ chmod +x dpk
-$ ./dpk
+$ chmod +x dumpgpg
+$ ./dumpgp
 ```
 
 # Donazioni
