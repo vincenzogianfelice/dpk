@@ -8,8 +8,6 @@
 
 # Usage
 
-Use:
-
 ```
 $ chmod +x dumpgpg
 $ ./dumpgp
